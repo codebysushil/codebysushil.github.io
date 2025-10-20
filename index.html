@@ -3,21 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Code By Sushil</title>
+<title>Code By Sushil | Articles</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
+
 <style>
 body{margin:0;font-family:'Inter',sans-serif;background:#0f1720;color:#e6eef8;line-height:1.6;}
 .wrap{max-width:1000px;margin:32px auto;padding:20px;}
 h1{text-align:center;margin-bottom:32px;}
 .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
-.article-card{background:rgba(255,255,255,0.02);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.03);transition:0.2s;}
+.article-card{background:rgba(255,255,255,0.02);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:0.2s;}
 .article-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.3);}
 .article-card h2{margin-top:0;color:#7c5cff;}
 .article-card p{color:#9aa4b2;}
 .article-card .meta{font-size:0.85rem;color:#9aa4b2;margin-top:10px;}
 .article-card .tags{margin-top:8px;font-size:0.8rem;color:#7c5cff;}
-.article-card a{text-decoration:none;color:inherit;}
+
+/* Modal */
+#article-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,32,0.95);color:#e6eef8;overflow:auto;display:none;flex-direction:column;padding:20px;z-index:999;}
+#article-modal .close{align-self:flex-end;font-size:28px;cursor:pointer;margin-bottom:12px;}
+#article-modal h1{margin-top:0;}
+#article-modal .article-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;color:#9aa4b2;font-size:0.9rem;}
+#article-modal img.cover{max-width:100%;border-radius:12px;margin:16px 0;}
+.article-body h1,h2,h3,h4,h5,h6{color:#e6eef8;margin-top:1.2rem;margin-bottom:0.6rem;}
+.article-body p{margin:0.6rem 0;}
+.article-body a{color:#7c5cff;}
+.article-body pre{background:#1e293b;padding:12px;border-radius:8px;overflow:auto;}
+
+/* Navigation buttons */
+.nav-buttons{display:flex;justify-content:space-between;margin-top:12px;}
+.nav-buttons button{background:#7c5cff;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;transition:0.2s;}
+.nav-buttons button:hover{background:#5a3edc;}
 </style>
 </head>
 <body>
@@ -26,7 +43,35 @@ h1{text-align:center;margin-bottom:32px;}
 <div class="articles-grid" id="articles-grid"></div>
 </div>
 
+<!-- Article Modal -->
+<div id="article-modal">
+  <span class="close" id="modal-close">&times;</span>
+  <h1 id="modal-title"></h1>
+  <div class="article-meta">
+    <span id="modal-author"></span>
+    <span id="modal-date"></span>
+    <span id="modal-readtime"></span>
+    <span id="modal-tags"></span>
+    <span id="modal-views"></span>
+  </div>
+  <img id="modal-cover" class="cover" src="" alt="Cover" style="display:none;">
+  <div id="article-content" class="article-body"></div>
+  <div class="nav-buttons">
+    <button id="prev-article">← Previous</button>
+    <button id="next-article">Next →</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+
 <script>
+// --- GitHub Config ---
+const GITHUB_USER = 'codebysushil';      
+const GITHUB_REPO = "codebysushil.github.io";    
+const ARTICLES_PATH = 'articles';         
+const BRANCH = 'main';                    
+
 // --- Helpers ---
 function parseFrontMatter(md){
   const fmRegex=/^---\s*([\s\S]*?)\s*---\s*/;
@@ -43,53 +88,103 @@ function parseFrontMatter(md){
   return {fm, content};
 }
 function formatDate(iso){try{const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso}}
-
-// --- Config ---
-const GITHUB_USER='codebysushil';      // your GitHub username
-const GITHUB_REPO="codebysushil.github.io";     // your repository name
-const ARTICLES_PATH='articles';    // folder containing markdown files
-const BRANCH='main';               // default branch
-
-(async function(){
-  const grid=document.getElementById('articles-grid');
+function estimateReadTime(text){const words=text.trim().split(/\s+/).length;return Math.max(1,Math.round(words/200))+' min read'}
+async function incAndGetViews(key){
   try{
-    // GitHub API: list files in articles folder
-    const apiUrl=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${ARTICLES_PATH}?ref=${BRANCH}`;
-    const res=await fetch(apiUrl);
-    if(!res.ok) throw new Error('Failed to fetch repo files');
-    const files=await res.json();
-    const mdFiles=files.filter(f=>f.name.endsWith('.md'));
-    
+    const res=await fetch(`https://api.countapi.xyz/hit/${GITHUB_USER}-${GITHUB_REPO}/${key}`);
+    const json=await res.json();
+    return json.value||0;
+  }catch(e){return '—'}
+}
+
+// --- DOM Elements ---
+const grid=document.getElementById('articles-grid');
+const modal=document.getElementById('article-modal');
+const modalClose=document.getElementById('modal-close');
+const modalTitle=document.getElementById('modal-title');
+const modalAuthor=document.getElementById('modal-author');
+const modalDate=document.getElementById('modal-date');
+const modalReadtime=document.getElementById('modal-readtime');
+const modalTags=document.getElementById('modal-tags');
+const modalViews=document.getElementById('modal-views');
+const modalCover=document.getElementById('modal-cover');
+const articleContent=document.getElementById('article-content');
+const prevBtn=document.getElementById('prev-article');
+const nextBtn=document.getElementById('next-article');
+
+let articlesData=[];    // store all articles
+let currentIndex=0;     // current article in modal
+
+// --- Load articles dynamically ---
+(async function(){
+  try{
+    const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${ARTICLES_PATH}?ref=${BRANCH}`;
+    const res = await fetch(apiUrl);
+    if(!res.ok) throw new Error('Failed to fetch articles list');
+    const files = await res.json();
+    const mdFiles = files.filter(f=>f.name.endsWith('.md'));
+
     for(const file of mdFiles){
       try{
-        const rawUrl=file.download_url; // direct raw URL
-        const resp=await fetch(rawUrl);
+        const rawUrl = file.download_url;
+        const resp = await fetch(rawUrl);
         if(!resp.ok) continue;
-        const mdText=await resp.text();
-        const {fm}=parseFrontMatter(mdText);
-        const title=fm.title||file.name;
-        const description=fm.description||'';
-        const author=fm.author||'Unknown';
-        const date=fm.date?formatDate(fm.date):'';
-        const tags=fm.tags||'';
-        
-        const card=document.createElement('a');
-        card.href=`pages/article.html?file=${file.name}`;
-        card.className='article-card';
+        const mdText = await resp.text();
+        const {fm, content} = parseFrontMatter(mdText);
+
+        const article = {
+          fileName: file.name,
+          title: fm.title||file.name,
+          description: fm.description||'',
+          author: fm.author||'Unknown',
+          date: fm.date?formatDate(fm.date):'',
+          tags: fm.tags||'',
+          cover: fm.cover||'',
+          content
+        };
+        articlesData.push(article);
+
+        // create card
+        const card = document.createElement('div');
+        card.className = 'article-card';
         card.innerHTML=`
-          <h2>${title}</h2>
-          <p>${description}</p>
-          <div class="meta">By ${author} | ${date}</div>
-          <div class="tags">${tags}</div>
+          <h2>${article.title}</h2>
+          <p>${article.description}</p>
+          <div class="meta">By ${article.author} | ${article.date}</div>
+          <div class="tags">${article.tags}</div>
         `;
+
+        card.addEventListener('click',()=>openModal(articlesData.indexOf(article)));
         grid.appendChild(card);
-      }catch(e){console.error('Error loading markdown', file.name, e);}
+
+      }catch(err){console.error('Error loading file', file.name, err);}
     }
-  }catch(e){
-    console.error('Error fetching articles', e);
-    grid.innerHTML='<p class="small">Unable to load articles.</p>';
-  }
+  }catch(e){console.error('Failed to fetch articles list', e);}
 })();
+
+// --- Modal functions ---
+async function openModal(index){
+  currentIndex=index;
+  const article=articlesData[index];
+  modalTitle.textContent=article.title;
+  modalAuthor.textContent='By '+article.author;
+  modalDate.textContent=article.date;
+  modalReadtime.textContent=estimateReadTime(article.content);
+  modalTags.textContent=article.tags;
+  if(article.cover){modalCover.src=article.cover; modalCover.style.display='block';} else modalCover.style.display='none';
+  articleContent.innerHTML=marked.parse(article.content);
+  Prism.highlightAll();
+  modalViews.textContent='Views: ' + await incAndGetViews(article.fileName.replace(/\.[^/.]+$/,""));
+  modal.style.display='flex';
+}
+
+// Next / Previous
+prevBtn.addEventListener('click',()=>openModal((currentIndex-1+articlesData.length)%articlesData.length));
+nextBtn.addEventListener('click',()=>openModal((currentIndex+1)%articlesData.length));
+
+// Close modal
+modalClose.addEventListener('click',()=>modal.style.display='none');
+window.addEventListener('click',e=>{if(e.target==modal) modal.style.display='none'});
 </script>
 </body>
 </html>
