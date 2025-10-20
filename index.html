@@ -1,442 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Code By Sushil</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Code By Sushil</title>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Prism for syntax highlighting -->
-  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet" />
-
-  <style>
-    :root{
-      --bg:#0f1720;
-      --card:#0b1220;
-      --muted:#9aa4b2;
-      --accent:#7c5cff;
-      --text:#e6eef8;
-      --max-width:900px;
-      --radius:14px;
-    }
-    /* Light mode override if user prefers */
-    @media (prefers-color-scheme: light) {
-      :root{
-        --bg:#f6f8fb;
-        --card:#ffffff;
-        --muted:#55606b;
-        --accent:#6b46ff;
-        --text:#0b1220;
-      }
-    }
-
-    html,body{
-      height:100%;
-      margin:0;
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg, rgba(124,92,255,0.06), transparent 30%), var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      line-height:1.6;
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:32px auto;
-      padding:20px;
-    }
-
-    header.article-header{
-      display:flex;
-      gap:16px;
-      align-items:flex-start;
-      margin-bottom:20px;
-    }
-
-    .logo {
-      min-width:72px;
-      height:72px;
-      border-radius:12px;
-      background:linear-gradient(135deg,var(--accent), rgba(124,92,255,0.5));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
-      color:white;
-      box-shadow:0 8px 30px rgba(11,17,32,0.45);
-      flex-shrink:0;
-    }
-
-    .meta {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
-    .title {
-      font-size:1.6rem;
-      font-weight:700;
-      letter-spacing:-0.2px;
-      margin:0;
-    }
-
-    .sub {
-      color:var(--muted);
-      font-size:0.95rem;
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-
-    main.article-card{
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:var(--radius);
-      padding:28px;
-      box-shadow: 0 10px 40px rgba(2,6,23,0.6);
-      max-width:var(--max-width);
-      margin: 0 auto 40px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,0.03);
-    }
-
-    .hero {
-      border-radius:12px;
-      overflow:hidden;
-      margin-bottom:20px;
-    }
-
-    .hero img {
-      width:100%;
-      display:block;
-      height: clamp(160px, 28vw, 360px);
-      object-fit:cover;
-      filter: saturate(1.02) contrast(0.98);
-    }
-
-    .article-body{
-      color:var(--text);
-    }
-
-    /* Typography for markdown content */
-    .article-body h1, .article-body h2, .article-body h3 {
-      color:var(--text);
-      margin-top:1.4rem;
-      margin-bottom:0.6rem;
-      line-height:1.2;
-    }
-    .article-body p { margin:0.6rem 0; color:rgba(230,238,248,0.96) }
-    .article-body a { color:var(--accent); text-decoration:none; border-bottom:1px dotted rgba(124,92,255,0.18)}
-    .article-body ul, .article-body ol { padding-left:1.1rem; margin:0.6rem 0}
-    .article-body blockquote{ margin:0.8rem 0; padding:14px; border-left:4px solid rgba(124,92,255,0.12); background:rgba(0,0,0,0.03); border-radius:8px; color:var(--muted) }
-    .article-body pre{ padding:16px; border-radius:10px; overflow:auto; font-size:0.92rem }
-    .article-body img{ max-width:100%; border-radius:8px }
-
-    .meta-row {
-      display:flex;
-      gap:12px;
-      align-items:center;
-      margin-bottom:18px;
-      color:var(--muted);
-      font-size:0.95rem;
-      flex-wrap:wrap;
-    }
-
-    .badge {
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      background:rgba(255,255,255,0.02);
-      padding:8px 10px;
-      border-radius:999px;
-      font-weight:600;
-      color:var(--text);
-      font-size:0.85rem;
-      box-shadow:inset 0 -1px 0 rgba(255,255,255,0.02);
-      border:1px solid rgba(255,255,255,0.03);
-    }
-
-    .actions {
-      margin-left:auto;
-      display:flex;
-      gap:8px;
-    }
-
-    .btn {
-      background:transparent;
-      border:1px solid rgba(255,255,255,0.06);
-      color:var(--text);
-      padding:8px 10px;
-      border-radius:8px;
-      cursor:pointer;
-      font-weight:600;
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-    }
-
-    .small{ font-size:0.88rem; color:var(--muted) }
-
-    /* Responsive */
-    @media (max-width:880px){
-      header.article-header{flex-direction:row; gap:12px}
-      .title{font-size:1.3rem}
-      .wrap{ padding:14px; margin:18px auto}
-      main.article-card{ padding:18px }
-    }
-
-    /* Print rules */
-    @media print {
-      body { background: white; color: black }
-      header, .actions { display:none }
-      main.article-card { box-shadow:none; border:none; padding:0 }
-    }
-  </style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',sans-serif;background:#0f1720;color:#e6eef8;line-height:1.6;}
+.wrap{max-width:1000px;margin:32px auto;padding:20px;}
+h1{text-align:center;margin-bottom:32px;}
+.articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;}
+.article-card{background:rgba(255,255,255,0.02);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.03);transition:0.2s;}
+.article-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.3);}
+.article-card h2{margin-top:0;color:#7c5cff;}
+.article-card p{color:#9aa4b2;}
+.article-card .meta{font-size:0.85rem;color:#9aa4b2;margin-top:10px;}
+.article-card .tags{margin-top:8px;font-size:0.8rem;color:#7c5cff;}
+.article-card a{text-decoration:none;color:inherit;}
+</style>
 </head>
 <body>
-  <div class="wrap">
+<div class="wrap">
+<h1>Articles</h1>
+<div class="articles-grid" id="articles-grid"></div>
+</div>
 
-    <!-- Header -->
-    <header class="article-header" role="banner">
-      <div class="logo" aria-hidden="true">Code By Sushil</div>
-      <div class="meta">
-        <h1 id="page-title" class="title">Loading…</h1>
-        <div class="sub">
-          <div id="page-excerpt" class="small">Rendering content</div>
-        </div>
-      </div>
-    </header>
+<script>
+// --- Helpers ---
+function parseFrontMatter(md){
+  const fmRegex=/^---\s*([\s\S]*?)\s*---\s*/;
+  const match=md.match(fmRegex);
+  if(!match) return {fm:{}, content:md};
+  const yaml=match[1];
+  const content=md.slice(match[0].length);
+  const lines=yaml.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const fm={};
+  for(const line of lines){
+    const m=line.match(/^([A-Za-z0-9\-_]+)\s*:\s*(.*)$/);
+    if(m){fm[m[1].toLowerCase()]=m[2].replace(/^["'](.*)["']$/,'$1');}
+  }
+  return {fm, content};
+}
+function formatDate(iso){try{const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso}}
 
-    <!-- Article Card -->
-    <main id="article-card" class="article-card" role="main" aria-labelledby="page-title">
-      <div class="meta-row" style="align-items:center">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="badge" id="author-badge">—</div>
-          <div class="small" id="date-badge">—</div>
-          <div class="small" id="readtime-badge">—</div>
-        </div>
+// --- Config ---
+const GITHUB_USER='codebysushil';      // your GitHub username
+const GITHUB_REPO="codebysushil.github.io";     // your repository name
+const ARTICLES_PATH='articles';    // folder containing markdown files
+const BRANCH='main';               // default branch
 
-        <div class="actions" role="toolbar" aria-label="article actions">
-          <button id="share-btn" class="btn" title="Share">Share</button>
-          <button id="print-btn" class="btn" title="Print">Print</button>
-          <div id="views" class="badge" style="margin-left:8px">Views: <strong id="views-count">—</strong></div>
-        </div>
-      </div>
-
-      <div id="hero" class="hero" aria-hidden="true"></div>
-
-      <article id="article-content" class="article-body" />
-
-    </main>
-
-    <footer style="max-width:var(--max-width); margin:0 auto; color:var(--muted); font-size:0.95rem;">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
-        <div>Published with ❤️ on GitHub Pages</div>
-        <div class="small">Template · Responsive · Markdown</div>
-      </div>
-    </footer>
-
-  </div>
-
-  <!-- Marked (markdown parser) and Prism (syntax highlighting) -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
-
-  <script>
-    /***********************
-     * CONFIG - change these
-     ***********************/
-    // Path (relative to this HTML file) or absolute URL to the markdown file for this article.
-    // Example: '/articles/my-article.md' or 'https://raw.githubusercontent.com/username/repo/branch/articles/my-article.md'
-    const ARTICLE_MD_PATH = './article.md';
-
-    // CountAPI namespace and key:
-    // Choose a stable namespace for your site (e.g. "mysite.github.io") and a key per-article (slug).
-    // First time a new key is hit, CountAPI will create it.
-    // Example namespace: "rahim-sahu-blog" ; key: "my-article-slug"
-    const COUNT_NAMESPACE = 'my-github-pages-site'; // keep for your site
-    const ARTICLE_SLUG = (() => {
-      // derive slug from LOCATION or a fixed slug:
-      // For GH Pages you might set this per-page (e.g. "my-article") or derive from file name.
-      // Using the file name as fallback:
-      try {
-        const url = new URL(window.location.href);
-        const p = url.pathname.split('/').filter(Boolean).pop();
-        return (p && p.includes('.html')) ? p.replace('.html','') : (p || 'index');
-      } catch(e){
-        return 'index';
-      }
-    })();
-
-    /***********************
-     * Helpers
-     ***********************/
-    function parseFrontMatter(md) {
-      // simple YAML front-matter parsing for keys: title, author, date, cover, excerpt
-      const fmRegex = /^---\s*([\s\S]*?)\s*---\s*/;
-      const match = md.match(fmRegex);
-      if(!match) return { fm: {}, content: md };
-      const yaml = match[1];
-      const content = md.slice(match[0].length);
-      const lines = yaml.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      const fm = {};
-      for (const line of lines) {
-        const m = line.match(/^([A-Za-z0-9\-_]+)\s*:\s*(.*)$/);
-        if (m) {
-          let key = m[1].toLowerCase();
-          let val = m[2].trim();
-          // remove surrounding quotes
-          val = val.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
-          fm[key] = val;
-        }
-      }
-      return { fm, content };
+(async function(){
+  const grid=document.getElementById('articles-grid');
+  try{
+    // GitHub API: list files in articles folder
+    const apiUrl=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${ARTICLES_PATH}?ref=${BRANCH}`;
+    const res=await fetch(apiUrl);
+    if(!res.ok) throw new Error('Failed to fetch repo files');
+    const files=await res.json();
+    const mdFiles=files.filter(f=>f.name.endsWith('.md'));
+    
+    for(const file of mdFiles){
+      try{
+        const rawUrl=file.download_url; // direct raw URL
+        const resp=await fetch(rawUrl);
+        if(!resp.ok) continue;
+        const mdText=await resp.text();
+        const {fm}=parseFrontMatter(mdText);
+        const title=fm.title||file.name;
+        const description=fm.description||'';
+        const author=fm.author||'Unknown';
+        const date=fm.date?formatDate(fm.date):'';
+        const tags=fm.tags||'';
+        
+        const card=document.createElement('a');
+        card.href=`pages/article.html?file=${file.name}`;
+        card.className='article-card';
+        card.innerHTML=`
+          <h2>${title}</h2>
+          <p>${description}</p>
+          <div class="meta">By ${author} | ${date}</div>
+          <div class="tags">${tags}</div>
+        `;
+        grid.appendChild(card);
+      }catch(e){console.error('Error loading markdown', file.name, e);}
     }
-
-    function formatDate(iso) {
-      try {
-        const d = new Date(iso);
-        if (isNaN(d)) return iso;
-        return d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
-      } catch(e){ return iso }
-    }
-
-    function estimateReadTime(text) {
-      const words = text.trim().split(/\s+/).length;
-      const minutes = Math.max(1, Math.round(words / 200));
-      return minutes + ' min read';
-    }
-
-    async function incAndGetCount(namespace, key) {
-      // Using CountAPI to increment and fetch: https://countapi.xyz
-      // POST-like increment endpoint:
-      try {
-        const hitUrl = `https://api.countapi.xyz/hit/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`;
-        const res = await fetch(hitUrl);
-        if (!res.ok) throw new Error('countapi error');
-        const json = await res.json();
-        return json.value || 0;
-      } catch (err) {
-        // fallback: try get
-        try {
-          const getUrl = `https://api.countapi.xyz/get/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`;
-          const r2 = await fetch(getUrl);
-          const j2 = await r2.json();
-          return j2.value || 0;
-        } catch(e) {
-          console.warn('Count fetch failed', e);
-          return null;
-        }
-      }
-    }
-
-    /***********************
-     * Main
-     ***********************/
-    (async function(){
-      // fetch markdown
-      let mdText = '';
-      try {
-        const resp = await fetch(ARTICLE_MD_PATH);
-        if (!resp.ok) throw new Error('Failed to fetch markdown: ' + resp.status);
-        mdText = await resp.text();
-      } catch (err) {
-        document.getElementById('page-title').textContent = 'Unable to load article';
-        document.getElementById('article-content').innerHTML = '<p class="small">Error loading markdown file. Make sure ARTICLE_MD_PATH is set and the file is accessible. Check the console for details.</p>';
-        console.error(err);
-        return;
-      }
-
-      // parse front-matter
-      const { fm, content } = parseFrontMatter(mdText);
-
-      // Title & excerpt
-      const title = fm.title || document.title || 'Untitled Article';
-      const excerpt = fm.excerpt || '';
-      const author = fm.author || 'Unknown author';
-      const date = fm.date || null;
-      const cover = fm.cover || null;
-
-      // Set header
-      document.getElementById('page-title').textContent = title;
-      document.getElementById('page-excerpt').textContent = excerpt;
-
-      // Author / date / readtime
-      document.getElementById('author-badge').innerHTML = '<strong>' + escapeHtml(author) + '</strong>';
-      if (date) document.getElementById('date-badge').textContent = formatDate(date);
-      document.getElementById('readtime-badge').textContent = estimateReadTime(content);
-
-      // Hero image
-      const hero = document.getElementById('hero');
-      if (cover) {
-        hero.innerHTML = `<img src="${escapeHtml(cover)}" alt="cover image">`;
-        hero.style.display = 'block';
-      } else hero.style.display = 'none';
-
-      // Render markdown to HTML
-      try {
-        // configure marked
-        marked.setOptions({
-          headerIds: true,
-          mangle: false,
-          gfm: true,
-          breaks: false,
-        });
-
-        const html = marked.parse(content);
-
-        const articleEl = document.getElementById('article-content');
-        articleEl.innerHTML = html;
-
-        // Activate Prism highlighting on code blocks
-        // Prism expects <pre><code class="language-...">...</code></pre>
-        Prism.highlightAll();
-      } catch (err) {
-        document.getElementById('article-content').textContent = 'Error rendering markdown.';
-        console.error(err);
-      }
-
-      // Views: increment and display
-      const count = await incAndGetCount(COUNT_NAMESPACE, ARTICLE_SLUG);
-      const viewsEl = document.getElementById('views-count');
-      if (count === null) {
-        viewsEl.textContent = '—';
-      } else {
-        viewsEl.textContent = count.toLocaleString();
-      }
-
-      // Buttons
-      document.getElementById('print-btn').addEventListener('click', () => window.print());
-
-      document.getElementById('share-btn').addEventListener('click', async () => {
-        const shareData = {
-          title,
-          text: excerpt || title,
-          url: window.location.href
-        };
-        if (navigator.share) {
-          try { await navigator.share(shareData); } catch (e) { console.warn(e); }
-        } else {
-          // fallback copy
-          try {
-            await navigator.clipboard.writeText(window.location.href);
-            alert('Article link copied to clipboard');
-          } catch (e) {
-            prompt('Copy this link:', window.location.href);
-          }
-        }
-      });
-
-    })();
-
-    /***********************
-     * Utilities
-     ***********************/
-    function escapeHtml(s){ return s ? s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
-  </script>
-
+  }catch(e){
+    console.error('Error fetching articles', e);
+    grid.innerHTML='<p class="small">Unable to load articles.</p>';
+  }
+})();
+</script>
 </body>
 </html>
