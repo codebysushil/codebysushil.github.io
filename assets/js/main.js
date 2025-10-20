@@ -1,6 +1,6 @@
 // --- GitHub Config ---
 const GITHUB_USER = 'codebysushil';      
-const GITHUB_REPO = "codebysushil.github.io";    
+const GITHUB_REPO = 'codebysushil.github.io';    
 const ARTICLES_PATH = 'articles';         
 const BRANCH = 'main';                    
 
@@ -21,13 +21,6 @@ function parseFrontMatter(md){
 }
 function formatDate(iso){try{const d=new Date(iso);return isNaN(d)?iso:d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}catch(e){return iso}}
 function estimateReadTime(text){const words=text.trim().split(/\s+/).length;return Math.max(1,Math.round(words/200))+' min read'}
-async function incAndGetViews(key){
-  try{
-    const res=await fetch(`https://api.countapi.xyz/hit/${GITHUB_USER}-${GITHUB_REPO}/${key}`);
-    const json=await res.json();
-    return json.value||0;
-  }catch(e){return '—'}
-}
 
 // --- DOM Elements ---
 const grid=document.getElementById('articles-grid');
@@ -85,7 +78,6 @@ let currentIndex=0;     // current article in modal
           <div class="meta">By ${article.author} | ${article.date}</div>
           <div class="tags">${article.tags}</div>
         `;
-
         card.addEventListener('click',()=>openModal(articlesData.indexOf(article)));
         grid.appendChild(card);
 
@@ -96,18 +88,49 @@ let currentIndex=0;     // current article in modal
 
 // --- Modal functions ---
 async function openModal(index){
-  currentIndex=index;
-  const article=articlesData[index];
-  modalTitle.textContent=article.title;
-  modalAuthor.textContent='By '+article.author;
-  modalDate.textContent=article.date;
-  modalReadtime.textContent=estimateReadTime(article.content);
-  modalTags.textContent=article.tags;
-  if(article.cover){modalCover.src=article.cover; modalCover.style.display='block';} else modalCover.style.display='none';
-  articleContent.innerHTML=marked.parse(article.content);
+  currentIndex = index;
+  const article = articlesData[index];
+
+  // --- Update modal content ---
+  modalTitle.textContent = article.title;
+  modalAuthor.textContent = 'By ' + article.author;
+  modalDate.textContent = article.date;
+  modalReadtime.textContent = estimateReadTime(article.content);
+  modalTags.textContent = article.tags;
+
+  if(article.cover){
+    modalCover.src = article.cover;
+    modalCover.style.display = 'block';
+  } else {
+    modalCover.style.display = 'none';
+  }
+
+  articleContent.innerHTML = marked.parse(article.content);
   Prism.highlightAll();
-  modalViews.textContent='Views: ' + await incAndGetViews(article.fileName.replace(/\.[^/.]+$/,""));
-  modal.style.display='flex';
+
+  // --- GA4 Event Tracking ---
+  if (typeof gtag === 'function') {
+    gtag('event', 'view_article', {
+      article_name: article.title,
+      article_file: article.fileName
+    });
+  }
+
+  // --- Local view counter ---
+  const storageKey = 'views_' + article.fileName;
+  let views = parseInt(localStorage.getItem(storageKey)) || 0;
+  views++;
+  localStorage.setItem(storageKey, views);
+  modalViews.textContent = 'Views (you): ' + views;
+
+  // --- Update page title & meta description ---
+  document.title = article.title + " | Code By Sushil";
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc){
+    metaDesc.setAttribute('content', article.description || article.title);
+  }
+
+  modal.style.display = 'flex';
 }
 
 // Next / Previous
